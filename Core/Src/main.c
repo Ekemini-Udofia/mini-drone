@@ -21,8 +21,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <stdio.h>
 #include "motor_control.h"
+#include "imu.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -32,10 +32,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define MPU_ADDR        (0x68 << 1)   // HAL expects shifted address
-#define WHO_AM_I_REG    0x75
-#define PWR_MGMT_1      0x6B
-#define ACCEL_XOUT_H    0x3B
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -68,28 +65,6 @@ static void MX_TIM1_Init(void);
 int __io_putchar(int ch) {
 	HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
 	return ch;
-}
-
-HAL_StatusTypeDef MPU_ReadReg(uint8_t reg, uint8_t *data)
-{
-    return HAL_I2C_Mem_Read(&hi2c1,
-                            MPU_ADDR,
-                            reg,
-                            I2C_MEMADD_SIZE_8BIT,
-                            data,
-                            1,
-                            HAL_MAX_DELAY);
-}
-
-HAL_StatusTypeDef MPU_WriteReg(uint8_t reg, uint8_t data)
-{
-    return HAL_I2C_Mem_Write(&hi2c1,
-                             MPU_ADDR,
-                             reg,
-                             I2C_MEMADD_SIZE_8BIT,
-                             &data,
-                             1,
-                             HAL_MAX_DELAY);
 }
 /* USER CODE END PFP */
 
@@ -135,59 +110,14 @@ int main(void)
   // Lazy Init status (If it reaches this point then everything must be okay
 
   printf("[INIT]\nI2C1 OK\nUART1 OK\nSPI1 OK\n");
-  printf("MPU6500 HAL Test Start\r\n");
-
-  uint8_t who_am_i = 0;
-
-  if (MPU_ReadReg(WHO_AM_I_REG, &who_am_i) != HAL_OK)
-  {
-      printf("I2C communication failed!\r\n");
-      while(1);
-  }
-
-  printf("WHO_AM_I = 0x%X\r\n", who_am_i);
-
-  if (who_am_i != 0x70)
-  {
-      printf("Wrong device detected!\r\n");
-      while(1);
-  }
-
-  printf("MPU6500 detected successfully.\r\n");
-
-  // Wake up MPU (clear sleep bit)
-  if (MPU_WriteReg(PWR_MGMT_1, 0x00) != HAL_OK)
-  {
-      printf("Failed to wake MPU!\r\n");
-      while(1);
-  }
-
-  printf("MPU awakened.\r\n");
-
-  HAL_Delay(100);
 
   while (1)
   {
-      uint8_t accel_data[2];
+	  IMU_Data imu;
 
-      if (HAL_I2C_Mem_Read(&hi2c1,
-                           MPU_ADDR,
-                           ACCEL_XOUT_H,
-                           I2C_MEMADD_SIZE_8BIT,
-                           accel_data,
-                           2,
-                           HAL_MAX_DELAY) == HAL_OK)
-      {
-          int16_t accel_x = (accel_data[0] << 8) | accel_data[1];
+	  IMU_Read(&imu);
 
-          printf("Accel X: %d\r\n", accel_x);
-      }
-      else
-      {
-          printf("Read error!\r\n");
-      }
-
-      HAL_Delay(500);
+	  printf("%f\n", imu.ax);
   }
   /* USER CODE END 2 */
 
