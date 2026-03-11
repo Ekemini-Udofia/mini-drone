@@ -97,7 +97,8 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  Motor_Init();
+  IMU_Init();
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -108,7 +109,6 @@ int main(void)
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   // Lazy Init status (If it reaches this point then everything must be okay
-
   printf("[INIT]\nI2C1 OK\nUART1 OK\nSPI1 OK\n");
 
   while (1)
