@@ -113,11 +113,27 @@ int main(void)
 
   while (1)
   {
-	  IMU_Data imu;
+	static uint32_t start_time = 0;
+	static uint32_t sample_count = 0;
 
-	  IMU_Read(&imu);
+	IMU_Data imu;
 
-	  printf("%f\n", imu.ax);
+	IMU_Read(&imu);   // reads ax, ay, az, gx, gy, gz
+
+	sample_count++;
+
+	if (start_time == 0)
+	{
+		start_time = HAL_GetTick();
+	}
+
+	if ((HAL_GetTick() - start_time) >= 1000)
+	{
+		printf("IMU Poll Rate: %lu Hz\r\n", sample_count);
+
+		sample_count = 0;
+		start_time = HAL_GetTick();
+	}
   }
   /* USER CODE END 2 */
 
